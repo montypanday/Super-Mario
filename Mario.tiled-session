@@ -1,0 +1,161 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "Mario World.tmx",
+    "expandedProjectPaths": [
+        "."
+    ],
+    "file.lastUsedOpenFilter": "All Files (*)",
+    "fileStates": {
+        "C:/Program Files/Tiled/examples/desert.tmx": {
+            "scale": 0.6709375,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 640.89427107592,
+                "y": 640.89427107592
+            }
+        },
+        "C:/Program Files/Tiled/examples/desert.tsx": {
+            "scaleInDock": 1
+        },
+        "C:/Program Files/Tiled/examples/hexagonal-mini.tmx": {
+            "scale": 3.5127147766323024,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 145.7562120915672,
+                "y": 89.10487184504011
+            }
+        },
+        "C:/Program Files/Tiled/examples/hexagonal-mini.tmx#hex mini": {
+            "scaleInDock": 1
+        },
+        "C:/Program Files/Tiled/examples/isometric_grass_and_water.tmx": {
+            "scale": 0.638875,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 801.4087262766581,
+                "y": 392.8781060457835
+            }
+        },
+        "C:/Program Files/Tiled/examples/isometric_grass_and_water.tmx#isometric_grass_and_water": {
+            "scaleInDock": 1
+        },
+        "C:/Program Files/Tiled/examples/orthogonal-outside.tmx": {
+            "scale": 1.419722222222222,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 360.63392682449614,
+                "y": 248.64018783017025
+            }
+        },
+        "C:/Program Files/Tiled/examples/orthogonal-outside.tmx#outdoor": {
+            "scaleInDock": 1
+        },
+        "C:/Program Files/Tiled/examples/perspective_walls.tmx": {
+            "scale": 0.8378536585365853,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 496.50675360968796,
+                "y": 479.79739170936193
+            }
+        },
+        "C:/Program Files/Tiled/examples/perspective_walls.tsx": {
+            "scaleInDock": 1
+        },
+        "C:/Program Files/Tiled/examples/sewer_automap/sewers.tmx": {
+            "scale": 1.1543010752688172,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 372.5197950628784,
+                "y": 372.51979506287836
+            }
+        },
+        "C:/Program Files/Tiled/examples/sewer_automap/sewers.tmx#rules_sewers": {
+            "scaleInDock": 1
+        },
+        "C:/Program Files/Tiled/examples/sewer_automap/sewers.tmx#sewer_tileset": {
+            "scaleInDock": 1
+        },
+        "C:/Program Files/Tiled/examples/sewers.tmx": {
+            "scale": 0.7156666666666666,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 600.838379133675,
+                "y": 600.838379133675
+            }
+        },
+        "C:/Program Files/Tiled/examples/sewers.tmx#sewer_tileset": {
+            "scaleInDock": 1
+        },
+        "C:/Program Files/Tiled/examples/sticker-knight/map/sandbox.tmx": {
+            "scale": 0.4043512658227848,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 1266.22578751712,
+                "y": 722.1443944433574
+            }
+        },
+        "C:/Program Files/Tiled/examples/sticker-knight/map/sandbox.tmx#objs": {
+            "scaleInDock": 1
+        },
+        "Mario World.tmx": {
+            "scale": 0.3678488372093023,
+            "selectedLayer": 3,
+            "viewCenter": {
+                "x": 1720.8155523945,
+                "y": 130.488383119962
+            }
+        },
+        "Mario World.tmx#NES - Super Mario Bros - Tileset": {
+            "scaleInDock": 1
+        },
+        "My Tileset.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "NES - Super Mario Bros - Tileset.tsx": {
+            "scaleInDock": 1.5,
+            "scaleInEditor": 1
+        },
+        "Pixel Adventure Terrain.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "World1.tmx": {
+            "scale": 0.268375,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 1419.6553330228226,
+                "y": 1110.3865859338612
+            }
+        }
+    },
+    "map.height": 25,
+    "map.lastUsedExportFilter": "JSON map files (*.json)",
+    "map.lastUsedFormat": "tmx",
+    "map.renderOrder": null,
+    "map.tileHeight": 16,
+    "map.tileWidth": 16,
+    "openFiles": [
+        "NES - Super Mario Bros - Tileset.tsx",
+        "Mario World.tmx"
+    ],
+    "project": "Mario.tiled-project",
+    "recentFiles": [
+        "NES - Super Mario Bros - Tileset.tsx",
+        "Mario World.tmx",
+        "Mario.tmx",
+        "My Tileset.tsx",
+        "World1.tmx",
+        "C:/Program Files/Tiled/examples/sewer_automap/sewers.tmx",
+        "C:/Program Files/Tiled/examples/sticker-knight/map/sandbox.tmx",
+        "C:/Program Files/Tiled/examples/desert.tmx",
+        "C:/Program Files/Tiled/examples/hexagonal-mini.tmx",
+        "C:/Program Files/Tiled/examples/isometric_grass_and_water.tmx",
+        "C:/Program Files/Tiled/examples/orthogonal-outside.tmx",
+        "C:/Program Files/Tiled/examples/perspective_walls.tmx"
+    ]
+}
