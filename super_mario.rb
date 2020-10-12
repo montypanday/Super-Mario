@@ -6,7 +6,7 @@ require 'pp'
 class GameWindow < Gosu::Window
   def initialize
     super(WIDTH, HEIGHT, false)
-    @map = Gosu::Tiled.load_json(self, 'Mario World.json')
+    @map = Gosu::Tiled.load_json(self, 'assets\Mario World.json')
     pp  @map.layers.object.select { |l| puts l.instance_variables }
     # player_pos_x = @map.layers.object.select { |l| l.data.name == 'Players' }.select{ |p| p.name = 'player1' }
     # puts(player_pos_x)
