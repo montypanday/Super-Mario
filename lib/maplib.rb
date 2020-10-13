@@ -113,5 +113,6 @@ end
 # provide x and y to get tile from layer
 # 2 dimensional grid is stored as single array
 def tile_at(layer, x, y)
+  # puts "x:#{x}, y:#{y}, index:#{y * layer.width + x}"
   return layer.data[y * layer.width + x]
 end
