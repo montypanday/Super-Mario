@@ -1,2 +1,3 @@
-WIDTH = 500
+WIDTH = 800
 HEIGHT = 256
+ASSETS_DIR = 'assets'
