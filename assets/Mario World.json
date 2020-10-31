@@ -454,6 +454,34 @@
         }, 
         {
          "draworder":"topdown",
+         "id":9,
+         "name":"Gateways",
+         "objects":[
+                {
+                 "height":47,
+                 "id":64,
+                 "name":"",
+                 "properties":[
+                        {
+                         "name":"next_level",
+                         "type":"string",
+                         "value":"2"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":16,
+                 "x":3345,
+                 "y":173
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "draworder":"topdown",
          "id":8,
          "name":"Enemies",
          "objects":[
@@ -474,6 +502,42 @@
                  "width":0,
                  "x":353,
                  "y":204
+                }, 
+                {
+                 "height":0,
+                 "id":59,
+                 "name":"",
+                 "point":true,
+                 "properties":[
+                        {
+                         "name":"dir",
+                         "type":"string",
+                         "value":"right"
+                        }],
+                 "rotation":0,
+                 "type":"goomba",
+                 "visible":true,
+                 "width":0,
+                 "x":626,
+                 "y":204
+                }, 
+                {
+                 "height":0,
+                 "id":60,
+                 "name":"",
+                 "point":true,
+                 "properties":[
+                        {
+                         "name":"dir",
+                         "type":"string",
+                         "value":"left"
+                        }],
+                 "rotation":0,
+                 "type":"goomba",
+                 "visible":true,
+                 "width":0,
+                 "x":1024,
+                 "y":189
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -481,8 +545,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":9,
- "nextobjectid":59,
+ "nextlayerid":10,
+ "nextobjectid":65,
  "orientation":"orthogonal",
  "renderorder":"left-down",
  "tiledversion":"1.4.2",

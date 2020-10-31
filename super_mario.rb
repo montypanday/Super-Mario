@@ -7,11 +7,11 @@ HEIGHT = 256
 ASSETS_DIR = 'assets'
 VELOCITY = 2
 SPEED = 1.5
-
+ENEMY_GOOMBA_VELOCITY = 1
+ENEMY_GOOMBA_SPEED = 1.0
 ROUND_CONFIG = 'assets/rounds.json'
-
-ENEMY_GOOMBA_SPEED = 1
-
+# enemy waits before changing direction
+ENEMY_GOOMBA_WAIT_TIME = 1000
 
 # Classes
 class TiledObject
@@ -112,33 +112,36 @@ class Map
 end
 
 class Player
-  attr_accessor :x, :y, :dir, :vy, :standing, :walk1, :walk2, :jump, :cur_image, :width, :height
+  attr_accessor :x, :y, :dir, :vy, :standing, :walk1, :walk2, :jump, :cur_image, :width, :height, :status, :killed, :wait_time
 
   def initialize(x, y)
     @x = x
     @y = y
     @width = 16
-    @height = 16
+    @height = 15
     @vy = 0
     @dir = :right
     filename = "assets/NES - Super Mario Bros - Mario & Luigi.png"
-    @standing = Gosu::Image.new(filename).subimage(80, 34, @width, @height)
-    @walk1 = Gosu::Image.new(filename).subimage(97, 34, @width, @height)
-    @walk2 = Gosu::Image.new(filename).subimage(114, 34, @width, @height)
-    @jump = Gosu::Image.new(filename).subimage(148, 34, @width, @height)
+    @standing = Gosu::Image.new(filename).subimage(80, 35, @width, @height)
+    @walk1 = Gosu::Image.new(filename).subimage(97, 35, @width, @height)
+    @walk2 = Gosu::Image.new(filename).subimage(114, 35, @width, @height)
+    @jump = Gosu::Image.new(filename).subimage(148, 35, @width, @height)
+    @killed = Gosu::Image.new(filename).subimage(182,35, @width, @height)
     # # This always points to the frame that is currently drawn.
     # # This is set in update, and used in draw.
     @cur_image = @standing
+    @status = :active
+    @wait_time = nil
   end
 end
 
 class Enemy
-  attr_accessor :x, :y, :dir, :vy, :standing, :walk1, :walk2, :squished, :cur_image, :width, :height
+  attr_accessor :x, :y, :dir, :vy, :standing, :walk1, :walk2, :squished, :cur_image, :width, :height, :waiting, :wait_time, :status, :killed
 
   def initialize(tiledobject)
     @x = tiledobject.x
     @y = tiledobject.y
-    @dir = tiledobject.properties.select{|property| property.name == "dir"}.first.value
+    @dir = tiledobject.properties.select { |property| property.name == "dir" }.first.value
     @vy = 0
     @width = 16
     @height = 16
@@ -151,6 +154,10 @@ class Enemy
     # # This always points to the frame that is currently drawn.
     # # This is set in update, and used in draw.
     @cur_image = @standing
+    @waiting = false
+    @wait_time = nil
+    @status = false
+    @killed = nil
   end
 end
 
@@ -181,6 +188,9 @@ def draw_character(character)
     factor = 1.0
   else
     factor = -1.0
+  end
+  if character.status == :killed && character.killed != nil
+    character.cur_image = character.killed
   end
   character.cur_image.draw(character.x, character.y, 0, factor, 1.0)
 end
@@ -247,22 +257,28 @@ def draw_tiles(map, layer, x, y)
   end
 end
 
-def update_character(map, character, move_x)
-
+def character_will_go_out_of_screen(map, character, move_x)
   # We must not allow character to move out of screen to the left or to the right
   if move_x < 0 # will move to the left
     if character.x + move_x < character.width
-      move_x = 0
+      return true
     end
   end
 
   if move_x > 0 # will move to the right
     if character.x + character.width + move_x > map.width * map.tilewidth
-      move_x = 0
+      return true
     end
   end
 
+  return false
+end
 
+def update_character(map, character, move_x, speed)
+
+  if (character_will_go_out_of_screen(map, character, move_x))
+    move_x = 0
+  end
 
   # Select image depending on action
   if (move_x == 0)
@@ -278,16 +294,16 @@ def update_character(map, character, move_x)
   if move_x > 0
     character.dir = :right
     move_x.times {
-      if would_fit(map, character, SPEED, 0) then
-        character.x += SPEED
+      if would_fit(map, character, speed, 0) then
+        character.x += speed
       end
     }
   end
   if move_x < 0
     character.dir = :left
     (-move_x).times {
-      if would_fit(map, character, -SPEED, 0) then
-        character.x -= SPEED
+      if would_fit(map, character, -speed, 0) then
+        character.x -= speed
       end
     }
   end
@@ -297,11 +313,14 @@ def update_character(map, character, move_x)
   # jumping curve will be the parabole we want it to be.
   character.vy += 1
 
+  down_speed = character.status == :killed ? 0.05 : 0.5 # we kill the player slowly
   # Vertical movement
   if character.vy > 0
     character.vy.times {
-      if would_fit(map, character, 0, 1) then
-        character.y += 1
+      if (character.status == :killed)
+        character.y += down_speed
+      elsif would_fit(map, character, 0, 1)
+        character.y += down_speed
       else
         character.vy = 0
       end
@@ -309,7 +328,7 @@ def update_character(map, character, move_x)
   end
   if character.vy < 0
     (-character.vy).times {
-      if would_fit(map, character, 0, -1) then
+      if would_fit(map, character, 0, -1)
         character.y -= 1
       else
         character.vy = 0
@@ -329,38 +348,48 @@ def would_fit(map, player, offset_x, offset_y)
   new_pos_x2 = new_pos_x1 + player.width
   new_pos_y2 = new_pos_y1 + player.height
 
-  if(player.dir == :left)
+  if (player.dir == :left)
     new_pos_x1 = new_pos_x1 - player.width
     new_pos_x2 = new_pos_x2 - player.width
   end
 
   # Find if overlaps if any other Group objects in map
   ground_layer = map.layers.select { |layer| layer.name == "Ground" }.first
-  ground_layer.tiledobjects.each do |tiledobject|
+  collision = detect_collision_with_layer_objects(ground_layer, new_pos_x1, new_pos_x2, new_pos_y1, new_pos_y2)
+
+  if (collision)
+    return false
+  end
+
+  return true
+end
+
+def detect_collision_with_layer_objects(layer, new_pos_x1, new_pos_x2, new_pos_y1, new_pos_y2)
+  layer.tiledobjects.each do |tiledobject|
     tile_pos_x1 = tiledobject.x
     tile_pos_y1 = tiledobject.y
     tile_pos_x2 = tile_pos_x1 + tiledobject.width
     tile_pos_y2 = tile_pos_y1 + tiledobject.height
-    overlap = !(
-    new_pos_x1 >= tile_pos_x2 ||
-        new_pos_x2 <= tile_pos_x1 ||
-        new_pos_y1 >= tile_pos_y2 ||
-        new_pos_y2 <= tile_pos_y1
-    )
+    overlap = rectangles_overlap(new_pos_x1, new_pos_x2, new_pos_y1, new_pos_y2, tile_pos_x1, tile_pos_x2, tile_pos_y1, tile_pos_y2)
 
     if (overlap)
-      if tiledobject.y >= 224
-        return false
-      end
       # puts "Player Current Position: x1:#{cur_pos_x1}, x2:#{cur_pos_x2}, y1:#{cur_pos_y1},y2:#{cur_pos_y2},"
       # puts "Player New Position: x1:#{new_pos_x1}, x2:#{new_pos_x2}, y1:#{new_pos_y1},y2:#{new_pos_y2},"
       # puts "Tile Position: x1:#{tile_pos_x1}, x2:#{tile_pos_x2}, y1:#{tile_pos_y1},y2:#{tile_pos_y2},"
       # puts "Overlap detected"
-      return false
+      return true
     end
   end
 
-  return true
+  return false
+end
+
+def rectangles_overlap(r1x1, r1x2, r1y1, r1y2, r2x1, r2x2, r2y1, r2y2)
+  return !(r1x1 >= r2x2 ||
+      r1x2 <= r2x1 ||
+      r1y1 >= r2y2 ||
+      r1y2 <= r2y1
+  )
 end
 
 def spawn_enemies(layer)
@@ -378,12 +407,55 @@ def spawn_enemy(enemytiledobject)
 end
 
 def change_character_direction(character)
-  if(character.dir == :right)
+
+  if (character.dir == :right)
     character.dir = :left
   elsif character.dir == :left
     character.dir = :right
   end
   character
+end
+
+def update_enemies(map, enemies)
+  for enemy in enemies
+    # Move enemy in the current direction
+    offset_to_check = enemy.dir == :right ? SPEED : -SPEED
+    wont_fit = !would_fit(map, enemy, offset_to_check, 0) # check collisions with ground objects
+    enemy_speed = enemy.dir == :left ? -ENEMY_GOOMBA_VELOCITY : ENEMY_GOOMBA_VELOCITY
+    # will_go_out_left = enemy
+    if (wont_fit or character_will_go_out_of_screen(map, enemy, enemy_speed)) # enemies only move left or right for now
+      if !enemy.waiting
+        enemy.waiting = true
+        enemy.wait_time = Gosu.milliseconds + ENEMY_GOOMBA_WAIT_TIME
+      end
+      if enemy.waiting && enemy.wait_time < Gosu.milliseconds
+        change_character_direction(enemy)
+        enemy.waiting = false
+        enemy.wait_time = nil
+      end
+
+    end
+    enemy_speed = enemy.dir == :left ? -ENEMY_GOOMBA_VELOCITY : ENEMY_GOOMBA_VELOCITY # we find speed again, direction might have changed
+    update_character(map, enemy, enemy_speed, ENEMY_GOOMBA_SPEED)
+  end
+end
+
+def detect_player_enemy_collision(player, enemies)
+  for enemy in enemies
+    if (rectangles_overlap(player.x, player.x + player.width, player.y, player.y + player.height, enemy.x, enemy.x + enemy.width, enemy.y, enemy.y + enemy.height))
+      return true
+    end
+  end
+  return false
+end
+
+def detect_player_gateway_collision(player, gatewaytiledobjects)
+  for gateway in gatewaytiledobjects
+    if (rectangles_overlap(player.x, player.x + player.width, player.y, player.y + player.height, gateway.x, gateway.x + gateway.width, gateway.y, gateway.y + gateway.height))
+      return gateway.properties.select{ |property| property.name == 'next_level'}.first.value
+    end
+  end
+  return false
 end
 
 class GameWindow < Gosu::Window
@@ -395,14 +467,14 @@ class GameWindow < Gosu::Window
   end
 
   def load_map(round)
-    @map = load_map_from_json(@current_round)
+    @map = load_map_from_json(round)
     @x = @y = 0
     player_layer = @map.layers.select { |layer| layer.name == "Players" }.first
     player_tiled_object = player_layer.tiledobjects.select { |object| object.name == 'player1' }.first
     @player = Player.new(player_tiled_object.x, player_tiled_object.y)
     @camera_x = @camera_y = 0
 
-    enemy_layer = @map.layers.select { |layer| layer.name == "Enemies"}.first
+    enemy_layer = @map.layers.select { |layer| layer.name == "Enemies" }.first
     @enemies = spawn_enemies(enemy_layer)
   end
 
@@ -411,17 +483,25 @@ class GameWindow < Gosu::Window
     move_x -= VELOCITY if Gosu.button_down? Gosu::KB_LEFT
     move_x += VELOCITY if Gosu.button_down? Gosu::KB_RIGHT
     # Update the Player
-    update_character(@map, @player, move_x)
+    update_character(@map, @player, move_x, SPEED)
 
     # Update all Enemies, enemy movement does not depend on key press
-    for enemy in @enemies
-      # Move enemy in the current direction
-      offset_to_check = enemy.dir == :right ? SPEED : -SPEED
-      if(!would_fit(@map,enemy,offset_to_check, 0)) # enemies only move left or right for now
-        change_character_direction(enemy)
-      end
-      enemy_speed = enemy.dir == :left ? -ENEMY_GOOMBA_SPEED : ENEMY_GOOMBA_SPEED
-      update_character(@map, enemy, enemy_speed)
+    update_enemies(@map, @enemies)
+
+    collision = detect_player_enemy_collision(@player, @enemies)
+    if(collision)
+      puts 'Collision with enemy'
+      @player.cur_image = @player.killed
+      @player.status = :killed
+      @player.vy =- 10
+    end
+
+    # Check player reached gateway, load next level from gateway
+    @gateway_layer = @map.layers.select { |layer| layer.name == "Gateways" }.first
+    next_level = detect_player_gateway_collision(@player, @gateway_layer.tiledobjects)
+    if next_level != false && @rounds[next_level]
+      pp next_level
+      load_map @rounds["#{next_level}"]
     end
 
     # Scrolling follows player
