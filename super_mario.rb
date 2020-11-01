@@ -126,7 +126,7 @@ class Player
     @walk1 = Gosu::Image.new(filename).subimage(97, 35, @width, @height)
     @walk2 = Gosu::Image.new(filename).subimage(114, 35, @width, @height)
     @jump = Gosu::Image.new(filename).subimage(148, 35, @width, @height)
-    @killed = Gosu::Image.new(filename).subimage(182,35, @width, @height)
+    @killed = Gosu::Image.new(filename).subimage(182, 35, @width, @height)
     # # This always points to the frame that is currently drawn.
     # # This is set in update, and used in draw.
     @cur_image = @standing
@@ -236,8 +236,6 @@ def draw_tiles(map, layer, x, y)
   off_x = x / map.tilewidth
   off_y = y / map.tilewidth
 
-  # tile_range_x = (off_x..screen_width_in_tiles + off_x)
-  # tile_range_y = (off_y..screen_height_in_tiles + off_y)
   tile_range_x = (off_x..map.width + off_x)
   tile_range_y = (off_y..map.height + off_y)
   tile_range_y.each do |yy|
@@ -249,7 +247,8 @@ def draw_tiles(map, layer, x, y)
         if (within_map_range(x + target_x, y + target_y))
           tileset = map.tilesets.fetch(1) # only have one tileset for now
           # tiles are stored in an array, hence index starts from 0. In Tiled, first tile is 1
-          image = tileset.tiles[tile - 1]
+          tile_index = tile - 1
+          image = tileset.tiles[tile_index]
           image.draw(target_x, target_y, 0)
         end
       end
@@ -276,6 +275,7 @@ end
 
 def update_character(map, character, move_x, speed)
 
+  # If we know the character will go out of the boundaries of the screen, we stop movement
   if (character_will_go_out_of_screen(map, character, move_x))
     move_x = 0
   end
@@ -358,10 +358,10 @@ def would_fit(map, player, offset_x, offset_y)
   collision = detect_collision_with_layer_objects(ground_layer, new_pos_x1, new_pos_x2, new_pos_y1, new_pos_y2)
 
   if (collision)
-    return false
+    return false # won't fit
   end
 
-  return true
+  return true # no collision
 end
 
 def detect_collision_with_layer_objects(layer, new_pos_x1, new_pos_x2, new_pos_y1, new_pos_y2)
@@ -373,10 +373,6 @@ def detect_collision_with_layer_objects(layer, new_pos_x1, new_pos_x2, new_pos_y
     overlap = rectangles_overlap(new_pos_x1, new_pos_x2, new_pos_y1, new_pos_y2, tile_pos_x1, tile_pos_x2, tile_pos_y1, tile_pos_y2)
 
     if (overlap)
-      # puts "Player Current Position: x1:#{cur_pos_x1}, x2:#{cur_pos_x2}, y1:#{cur_pos_y1},y2:#{cur_pos_y2},"
-      # puts "Player New Position: x1:#{new_pos_x1}, x2:#{new_pos_x2}, y1:#{new_pos_y1},y2:#{new_pos_y2},"
-      # puts "Tile Position: x1:#{tile_pos_x1}, x2:#{tile_pos_x2}, y1:#{tile_pos_y1},y2:#{tile_pos_y2},"
-      # puts "Overlap detected"
       return true
     end
   end
@@ -384,8 +380,12 @@ def detect_collision_with_layer_objects(layer, new_pos_x1, new_pos_x2, new_pos_y
   return false
 end
 
+# Detect if two rectangles overlap
+# https://stackoverflow.com/questions/306316/determine-if-two-rectangles-overlap-each-other
+# In Gosu, (0,0) is top left, this formula has been adjusted to account for that.
 def rectangles_overlap(r1x1, r1x2, r1y1, r1y2, r2x1, r2x2, r2y1, r2y2)
-  return !(r1x1 >= r2x2 ||
+  return !(
+      r1x1 >= r2x2 ||
       r1x2 <= r2x1 ||
       r1y1 >= r2y2 ||
       r1y2 <= r2y1
@@ -401,7 +401,6 @@ def spawn_enemies(layer)
 end
 
 def spawn_enemy(enemytiledobject)
-  pp enemytiledobject
   enemy = Enemy.new(enemytiledobject)
   enemy
 end
@@ -452,7 +451,7 @@ end
 def detect_player_gateway_collision(player, gatewaytiledobjects)
   for gateway in gatewaytiledobjects
     if (rectangles_overlap(player.x, player.x + player.width, player.y, player.y + player.height, gateway.x, gateway.x + gateway.width, gateway.y, gateway.y + gateway.height))
-      return gateway.properties.select{ |property| property.name == 'next_level'}.first.value
+      return gateway.properties.select { |property| property.name == 'next_level' }.first.value
     end
   end
   return false
@@ -489,11 +488,10 @@ class GameWindow < Gosu::Window
     update_enemies(@map, @enemies)
 
     collision = detect_player_enemy_collision(@player, @enemies)
-    if(collision)
+    if (collision)
       puts 'Collision with enemy'
-      @player.cur_image = @player.killed
       @player.status = :killed
-      @player.vy =- 10
+      @player.vy = -10
     end
 
     # Check player reached gateway, load next level from gateway
