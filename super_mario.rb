@@ -222,35 +222,33 @@ def draw_map(map, x, y)
   end
 end
 
-def draw_layer(map, layer, offset_x, offset_y)
+def draw_layer(map, layer, camera_x, camera_y)
   if layer.type == 'tilelayer'
-    draw_tiles(map, layer, offset_x, offset_y)
+    draw_tiles(map, layer, camera_x, camera_y)
   elsif layer.type == 'objectgroup'
-    # draw_objects(layer, offset_x, offset_y)
+    # draw_objects(layer, camera_x, camera_y)
   end
 end
 
-def draw_objects(layer, offset_x, offset_y) end
+def draw_objects(layer, camera_x, camera_y) end
 
-def draw_tiles(map, layer, x, y)
-  off_x = x / map.tilewidth
-  off_y = y / map.tilewidth
+def draw_tiles(map, layer, camera_x, camera_y)
+  tile_range_x = (0..map.width)
+  tile_range_y = (0..map.height)
 
-  tile_range_x = (off_x..map.width + off_x)
-  tile_range_y = (off_y..map.height + off_y)
+  # puts ("Tile_range_x Length is #{tile_range_x.inspect}")
+  # puts ("Tile_range_y Length is #{tile_range_y.inspect}")
   tile_range_y.each do |yy|
     tile_range_x.each do |xx|
       tile = tile_at(layer, xx, yy)
       if (tile != 0 && tile != nil)
-        target_x = transpose_tile_x(xx, x)
-        target_y = transpose_tile_y(yy, y)
-        if (within_map_range(x + target_x, y + target_y))
-          tileset = map.tilesets.fetch(1) # only have one tileset for now
-          # tiles are stored in an array, hence index starts from 0. In Tiled, first tile is 1
-          tile_index = tile - 1
-          image = tileset.tiles[tile_index]
-          image.draw(target_x, target_y, 0)
-        end
+        target_x = xx * map.tilewidth
+        target_y = yy * map.tileheight
+        tileset = map.tilesets.fetch(1)
+        # tiles are stored in an array, hence index starts from 0. In Tiled, first tile is 1
+        tile_index = tile - 1
+        image = tileset.tiles[tile_index]
+        image.draw(target_x, target_y, 0)
       end
     end
   end
@@ -385,7 +383,7 @@ end
 # In Gosu, (0,0) is top left, this formula has been adjusted to account for that.
 def rectangles_overlap(r1x1, r1x2, r1y1, r1y2, r2x1, r2x2, r2y1, r2y2)
   return !(
-      r1x1 >= r2x2 ||
+  r1x1 >= r2x2 ||
       r1x2 <= r2x1 ||
       r1y1 >= r2y2 ||
       r1y2 <= r2y1
@@ -467,7 +465,6 @@ class GameWindow < Gosu::Window
 
   def load_map(round)
     @map = load_map_from_json(round)
-    @x = @y = 0
     player_layer = @map.layers.select { |layer| layer.name == "Players" }.first
     player_tiled_object = player_layer.tiledobjects.select { |object| object.name == 'player1' }.first
     @player = Player.new(player_tiled_object.x, player_tiled_object.y)
@@ -475,6 +472,9 @@ class GameWindow < Gosu::Window
 
     enemy_layer = @map.layers.select { |layer| layer.name == "Enemies" }.first
     @enemies = spawn_enemies(enemy_layer)
+    @record = self.record(@map.tilewidth * @map.width, @map.tileheight * @map.height) do
+      draw_map(@map,0,0)
+    end
   end
 
   def update
@@ -538,29 +538,17 @@ class GameWindow < Gosu::Window
     (self.height / @map.tileheight.to_f).ceil
   end
 
-  def transpose_tile_x(x, off_x)
-    x * @map.tilewidth - off_x
-  end
-
-  def transpose_tile_y(y, off_y)
-    y * @map.tileheight - off_y
-  end
-
-  def within_map_range(x, y)
-    (0..@map.width * @map.tilewidth - 1).include?(x) && (0..@map.height * @map.tileheight - 1).include?(y)
-  end
-
   def draw
     # puts "Camera X is #{@camera_x}"
     # puts "Camera Y is #{@camera_y}"
     Gosu.translate(-@camera_x, -@camera_y) do
-      draw_map(@map, @x, @y)
-      draw_player @player
-      draw_enemies @enemies
-      # @ground_layer = @map.layers.select { |layer| layer.name == "Ground" }.first
-      # @ground_layer.tiledobjects.each do |tiledobject|
-      #   Gosu.draw_rect(tiledobject.x, tiledobject.y, tiledobject.width, tiledobject.height, Gosu::Color::RED)
-      # end
+        @record.draw(0, 0, 0)
+        draw_player @player
+        draw_enemies @enemies
+        # @ground_layer = @map.layers.select { |layer| layer.name == "Ground" }.first
+        # @ground_layer.tiledobjects.each do |tiledobject|
+        #   Gosu.draw_rect(tiledobject.x, tiledobject.y, tiledobject.width, tiledobject.height, Gosu::Color::RED)
+        # end
     end
   end
 end
